@@ -455,7 +455,12 @@ class SSHClient (ClosingContextManager):
 
         :return: a new `.SFTPClient` session object
         """
-        return self._transport.open_sftp_client()
+        # SFTP client needs to have a reference to the ssh client so that it
+        # (sftp client) can function when the ssh client goes out of scope
+        # See issue #344
+        sftp_client = self._transport.open_sftp_client()
+        sftp_client._ssh_client = self
+        return sftp_client
 
     def get_transport(self):
         """
